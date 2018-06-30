@@ -6,8 +6,8 @@ function run() {
     -e ASSETS_DIR=/data/assets \
     -e ACME_CACHE_DIR=/data \
     -p 8700:8700 \
-    -v $CONFIG_DIR/$NAME:/data:rw \
-    --name $NAME \
+    -v "$CONFIG_DIR/$NAME:/data:rw" \
+    --name "$NAME" \
     --restart always \
     --net host \
     $IMAGE
