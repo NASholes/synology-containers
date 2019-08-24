@@ -12,5 +12,6 @@ function run() {
     --name "$NAME" \
     --restart always \
     --net host \
-    $IMAGE
+    $IMAGE \
+    -c /data/config.lua
 }
