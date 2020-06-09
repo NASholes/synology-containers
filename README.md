@@ -10,7 +10,7 @@ It provides:
 ## Getting Started
 
 Synology's Linux distribution does not ship with git.
-In order to run git (and pretty much anything else missing), I use a trick similar to the [CoreOS toolbox] where I mount the root of the host as `/mnt` in an an Ubuntu image: `docker run -ti -v /:/mnt:rw bash`.
+In order to run git (and pretty much anything else missing), I use a trick similar to the [CoreOS toolbox] where I mount the root of the host as `/mnt` in an Ubuntu image: `docker run -ti -v /:/mnt:rw bash`.
 Now, you can `apt-get update -y && apt-get install -y git` within the container, use git to clone the repository, then `exit`.
 
 ```sh
