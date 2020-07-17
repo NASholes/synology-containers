@@ -1,0 +1,148 @@
+version: "3.7"
+
+networks:
+  monitoring:
+    driver: bridge
+
+services:
+  delugevpn:
+    container_name: "delugevpn"
+    image: "quay.io/jzelinskie/arch-delugevpn:latest"
+    restart: "unless-stopped"
+    devices:
+    - "/dev/net/tun"
+    cap_add:
+    - "NET_ADMIN"
+    ports:
+    - "8998:8998"   # BitTorrent
+    - "58846:58846" # Deluge Daemon
+    - "8118:8118"   # Privoxy
+    - "8112:8112"   # Deluge Web UI
+    volumes:
+    - "${VOLUMES_ROOT}/delugevpn:/config:rw"
+    - "${DELUGEVPN_DOWNLOAD_DIR}:/downloads:rw"
+    - "/etc/localtime:/etc/localtime:ro"
+    environment:
+    - "DEBUG=false"
+    - "ENABLE_PRIVOXY=yes"
+    - "LAN_NETWORK=192.168.2.0/24"
+    - "NAME_SERVERS=209.222.18.222,37.235.1.174,1.1.1.1,8.8.8.8,209.222.18.218,37.235.1.177,1.0.0.1,8.8.4.4"
+    - "PGID=${DOCKER_GROUP_ID}"
+    - "PUID=${DOCKER_USER_ID}"
+    - "STRICT_PORT_FORWARD=yes"
+    - "UMASK=000"
+    - "VPN_ENABLED=yes"
+    - "VPN_PROV=custom"
+    - "VPN_REMOTE=${DELUGEVPN_VPN_REMOTE}"
+    - "VPN_USER=${DELUGEVPN_VPN_USER}"
+    - "VPN_PASS=${DELUGEVPN_VPN_PASSWD}"
+
+  unifi:
+    container_name: "unifi"
+    image: "linuxserver/unifi-controller:latest"
+    restart: "unless-stopped"
+    network_mode: "host" # It literally configures the host network
+    ports:
+    - "10001:10001/udp"
+    - "3478:3478/udp"
+    - "6789:6789"
+    - "8080:8080"
+    - "8081:8081"
+    - "8443:8443"
+    - "8843:8843"
+    - "8880:8880"
+    volumes:
+    - "${VOLUMES_ROOT}/unifi:/config"
+    environment:
+    - "PGID=${DOCKER_GROUP_ID}"
+
+  murmur:
+    container_name: "murmur"
+    image: "quay.io/jzelinskie/murmur:latest"
+    restart: "unless-stopped"
+    init: true
+    ports:
+    - "64738:64738"
+    - "64738:64738/udp"
+    volumes:
+    - "${VOLUMES_ROOT}/murmur:/mnt:rw"
+
+  prometheus:
+    container_name: "prometheus"
+    image: "prom/prometheus:v2.19.2"
+    restart: "unless-stopped"
+    user: "${DOCKER_USER_ID}"
+    command:
+    - "--config.file=/etc/prometheus/prometheus.yaml"
+    - "--storage.tsdb.path=/prometheus"
+    - "--web.console.libraries=/etc/prometheus/console_libraries"
+    - "--web.console.templates=/etc/prometheus/consoles"
+    - "--storage.tsdb.retention.time=200h"
+    - "--web.enable-lifecycle"
+    ports:
+    - "9090:9090"
+    expose:
+    - "9090"
+    networks:
+    - "monitoring"
+    volumes:
+    - "${VOLUMES_ROOT}/prometheus/config:/etc/prometheus:ro"
+    - "${VOLUMES_ROOT}/prometheus/data:/prometheus"
+    environment:
+    - "PGID=${DOCKER_GROUP_ID}"
+    - "PUID=${DOCKER_USER_ID}"
+
+  grafana:
+    container_name: "grafana"
+    image: "grafana/grafana:7.0.6"
+    restart: "unless-stopped"
+    ports:
+    - "3000:3000"
+    expose:
+    - "3000"
+    networks:
+    - "monitoring"
+    volumes:
+    - "${VOLUMES_ROOT}/grafana/provisioning:/etc/grafana/provisioning"
+    - "${VOLUMES_ROOT}/grafana/data:/var/lib/grafana"
+    environment:
+    - "GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}"
+    - "GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}"
+    - "GF_USERS_ALLOW_SIGN_UP=false"
+
+  node_exporter:
+    container_name: "node_exporter"
+    image: "prom/node-exporter:v1.0.1"
+    restart: "unless-stopped"
+    user: "${DOCKER_USER_ID}"
+    command:
+    - "--path.procfs=/host/proc"
+    - "--path.rootfs=/rootfs"
+    - "--path.sysfs=/host/sys"
+    - "--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)"
+    ports:
+    - "9100:9100"
+    expose:
+    - "9100"
+    networks:
+    - "monitoring"
+    volumes:
+    - "/proc:/host/proc:ro"
+    - "/sys:/host/sys:ro"
+    - "/:/rootfs:ro"
+
+  cadvisor:
+    container_name: "cadvisor"
+    image: "gcr.io/cadvisor/cadvisor:v0.37.0"
+    restart: "unless-stopped"
+    ports:
+    - "8088:8080"
+    expose:
+    - "8080"
+    networks:
+    - "monitoring"
+    volumes:
+    - "/:/rootfs:ro"
+    - "/var/run:/var/run:rw"
+    - "/sys:/sys:ro"
+    - "/var/packages/Docker/target/docker:/var/lib/docker:ro"
