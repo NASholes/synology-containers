@@ -9,7 +9,7 @@ It provides:
 * [Mumble] server
 * [UniFi controller]
 
-[Promethues]: https://github.com/prometheus/prometheus
+[Prometheus]: https://github.com/prometheus/prometheus
 [Grafana]: https://github.com/grafana/grafana
 [cAdvisor]: https://github.com/google/cadvisor
 [Node Exporter]: https://github.com/prometheus/node_exporter
