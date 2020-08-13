@@ -1,6 +1,6 @@
 # Synology Containers
 
-This project my docker-compose configuration for various containers that run on my Synology DS918+.
+This project is a simple [Docker Compose] configuration for various containers that run on my Synology DS918+.
 
 It provides:
 
@@ -9,6 +9,7 @@ It provides:
 * [Mumble] server
 * [UniFi controller]
 
+[Docker Compose]: https://github.com/docker/compose
 [Prometheus]: https://github.com/prometheus/prometheus
 [Grafana]: https://github.com/grafana/grafana
 [cAdvisor]: https://github.com/google/cadvisor
@@ -22,11 +23,8 @@ It provides:
 ## Getting Started
 
 Synology's Linux distribution does not ship with git.
-In order to run git (and pretty much anything else missing), I use a trick similar to the [CoreOS toolbox] where I mount the root of the host as `/mnt` in an Ubuntu image: `docker run -ti -v /:/mnt:rw ubuntu:latest bash`.
-Now, you can `apt-get update -y && apt-get install -y git` within the container, use git to clone the repository, then `exit`.
-
-Docker Compose will load environment variables from a `.env` file in the same directory that it is executed.
-Thus, all secrets are to be stored in the `.env` file.
+Rather than SSHing into the machine and running git, you can mount a volume to your current device over [SMB] and run git locally.
+Another option is to SSH into the machine and [Bring Your Own Filesystem] ala the [CoreOS toolbox].
 
 ```sh
 git clone git@github.com:nasholes/synology-containers.git
@@ -36,7 +34,12 @@ vi .env
 sudo docker-compose up -d
 ```
 
+Docker Compose loads environment variables from a `.env` file in the same directory that it is executed.
+Thus, all secrets are to be stored in the `.env` file.
+
+[SMB]: https://en.wikipedia.org/wiki/Server_Message_Block
 [CoreOS toolbox]: https://github.com/coreos/toolbox
+[Bring Your Own Filesystem]: https://jzelinskie.com/posts/toolbox-for-your-dotfiles/
 
 ## License
 
