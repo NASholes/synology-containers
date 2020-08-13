@@ -3,11 +3,13 @@ version: "3.7"
 networks:
   monitoring:
     driver: bridge
+  bittorrent:
+    driver: bridge
 
 services:
   delugevpn:
     container_name: "delugevpn"
-    image: "quay.io/jzelinskie/arch-delugevpn:latest"
+    image: "binhex/arch-delugevpn:1.3.15_18_ge050905b2-1-04"
     restart: "unless-stopped"
     devices:
     - "/dev/net/tun"
@@ -18,6 +20,10 @@ services:
     - "58846:58846" # Deluge Daemon
     - "8118:8118"   # Privoxy
     - "8112:8112"   # Deluge Web UI
+    expose:
+    - "58846"
+    networks:
+    - "bittorrent"
     volumes:
     - "${VOLUMES_ROOT}/delugevpn:/config:rw"
     - "${DELUGEVPN_DOWNLOAD_DIR}:/downloads:rw"
@@ -58,7 +64,7 @@ services:
 
   murmur:
     container_name: "murmur"
-    image: "quay.io/jzelinskie/murmur:latest"
+    image: "jzelinskie/murmur:latest"
     restart: "unless-stopped"
     init: true
     ports:
