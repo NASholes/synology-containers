@@ -102,6 +102,7 @@ services:
     container_name: "grafana"
     image: "grafana/grafana:7.0.6"
     restart: "unless-stopped"
+    user: "${DOCKER_USER_ID}"
     ports:
     - "3000:3000"
     expose:
